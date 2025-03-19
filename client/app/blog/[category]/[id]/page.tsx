@@ -1,21 +1,180 @@
-import { notFound } from "next/navigation";
+"use client";
 
-interface BlogPostPageProps {
-  params: { category: string; id: string; content: string };
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { AiOutlineArrowLeft } from "react-icons/ai";
+
+interface BlogPost {
+  id: string;
+  todo: string;
+  content: string;
+  category: string;
+  authorName: string;
+  createAt: string;
+  isStar?: boolean;
 }
 
-export default function BlogPostPage({ params }: BlogPostPageProps) {
-  const { category, id, content } = params;
+export default function BlogCategoryPage({
+  params,
+}: {
+  params: { category: string };
+}) {
+  const { category } = params;
+  const router = useRouter();
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedPosts, setExpandedPosts] = useState<{
+    [key: string]: boolean;
+  }>({});
 
-  if (!id) {
-    return notFound();
-  }
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await fetch("http://localhost:7000/todos");
+        if (!response.ok) throw new Error("Failed to fetch posts");
+
+        const data = await response.json();
+        if (!Array.isArray(data.data)) throw new Error("Invalid data format");
+
+        const filteredPosts = data.data.filter(
+          (post: BlogPost) =>
+            post.category.toLowerCase() === category.toLowerCase()
+        );
+
+        setPosts(filteredPosts);
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [category]);
+
+  const toggleExpand = (id: string) => {
+    setExpandedPosts((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const toggleStar = async (id: string) => {
+    try {
+      const response = await fetch('http://localhost:7000/todos', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update post');
+      }
+
+      const { todo: updatedPost } = await response.json();
+
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => (post.id === updatedPost.id ? updatedPost : post))
+      );
+    } catch (err) {
+      console.error('Error updating post:', err);
+    }
+  };
+
+  const deletePost = async (id: string) => {
+    try {
+      const response = await fetch('http://localhost:7000/todos', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete post');
+      }
+
+      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== id));
+    } catch (err) {
+      console.error('Error deleting post:', err);
+    }
+  };
+
+  if (loading) return <p className="text-center mt-4">Loading...</p>;
+  if (error)
+    return <p className="text-center mt-4 text-red-500">Error: {error}</p>;
 
   return (
-    <div>
-      <h1>Blog Post: {id}</h1>
-      <p>Category: {category}</p>
-      <p>content: {content}</p>
+    <div className="container mx-auto max-w-7xl py-8 px-4">
+      <button
+        onClick={() => router.push("/")}
+        className="flex items-center text-blue-500 hover:text-blue-700 mb-4"
+      >
+        <AiOutlineArrowLeft className="mr-2 text-lg" /> Back
+      </button>
+      <h1 className="text-3xl font-bold capitalize">{category} Blogs</h1>
+      <p className="mt-2 text-gray-600">
+        Showing posts in the <strong>{category}</strong> category.
+      </p>
+
+      {/* Grid layout */}
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {posts.length > 0 ? (
+          posts.map((post) => (
+            <div
+              key={post.id}
+              className="bg-white shadow-md rounded-lg p-4 border hover:shadow-lg transition"
+            >
+              <div className="flex justify-between items-start mb-2">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {post.todo}
+                </h2>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => toggleStar(post.id)}
+                    className={`text-2xl ${post.isStar ? 'text-yellow-500' : 'text-gray-300'}`}
+                  >
+                    ★
+                  </button>
+                  <button
+                    onClick={() => deletePost(post.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+              <div>
+                <p
+                  className={`text-gray-600 mt-2 ${
+                    expandedPosts[post.id] ? "" : "line-clamp-3"
+                  }`}
+                >
+                  {post.content}
+                </p>
+                <button
+                  onClick={() => toggleExpand(post.id)}
+                  className="text-blue-500 mt-1"
+                >
+                  {expandedPosts[post.id] ? "See Less" : "See More"}
+                </button>
+              </div>
+              <p className="text-sm text-gray-500 mt-3">
+                By <span className="font-medium">{post.authorName}</span> •{" "}
+                {new Date(post.createAt).toISOString().split("T")[0]}
+              </p>
+            </div>
+          ))
+        ) : (
+          <p className="text-center mt-6 text-gray-500 col-span-full">
+            No posts found in this category.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

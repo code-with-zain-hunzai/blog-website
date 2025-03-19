@@ -41,12 +41,6 @@ const Navbar = () => {
                 {category.name}
               </Link>
             ))}
-            <Link
-              href="/new"
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              New Post
-            </Link>
           </div>
 
           {/* Mobile Navigation */}
@@ -73,13 +67,6 @@ const Navbar = () => {
                 {category.name}
               </Link>
             ))}
-            <Link
-              href="/new"
-              className="block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-2"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              New Post
-            </Link>
           </div>
         )}
       </div>

@@ -26,7 +26,6 @@ const BlogList: React.FC<{ category?: string | null }> = ({ category = null }) =
         }
         const data = await response.json();
 
-        // Ensure TypeScript knows the expected data structure
         const filteredPosts: BlogPost[] = category
           ? data.data.filter((post: BlogPost) => post.category.toLowerCase() === category.toLowerCase())
           : data.data;
