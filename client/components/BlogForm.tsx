@@ -24,7 +24,7 @@ const BlogForm = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:7000/todos', {
+      const response = await fetch('http://localhost:7000/api/todos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

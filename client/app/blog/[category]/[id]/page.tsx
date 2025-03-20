@@ -14,7 +14,7 @@ interface BlogPost {
   content: string;
   category: string;
   authorName: string;
-  createAt: string;
+  createdAt: string;
   isStar: boolean;
 }
 
@@ -49,7 +49,7 @@ export default function CategoryPage() {
 
         const sortedPosts = [...filteredPosts].sort(
           (a: BlogPost, b: BlogPost) =>
-            new Date(b.createAt).getTime() - new Date(a.createAt).getTime()
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
 
         setPosts(sortedPosts);
@@ -166,7 +166,7 @@ export default function CategoryPage() {
                 </button>
                 <div className="flex justify-between items-center text-sm text-gray-500 mt-2">
                   <span>By {post.authorName}</span>
-                  <span>{new Date(post.createAt).toLocaleDateString()}</span>
+                  <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
             </div>
