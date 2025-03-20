@@ -1,6 +1,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { fetchPosts, toggleStar as toggleStarApi, deletePost as deletePostApi } from '@/utils/api';
+import { FiStar, FiTrash } from 'react-icons/fi';
 
 interface BlogPost {
   id: string;
@@ -18,48 +20,23 @@ const BlogList: React.FC<{ category?: string | null }> = ({ category = null }) =
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPosts = async () => {
+    const getPosts = async () => {
       try {
-        const response = await fetch('http://localhost:7000/todos');
-        if (!response.ok) {
-          throw new Error('Failed to fetch posts');
-        }
-        const data = await response.json();
-
-        const filteredPosts: BlogPost[] = category
-          ? data.data.filter((post: BlogPost) => post.category.toLowerCase() === category.toLowerCase())
-          : data.data;
-
-        setPosts(filteredPosts);
+        const data = await fetchPosts(category);
+        setPosts(data);
       } catch (err) {
         setError((err as Error).message);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchPosts();
+    getPosts();
   }, [category]);
 
   const toggleStar = async (id: string) => {
     try {
-      const response = await fetch('http://localhost:7000/todos', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update post');
-      }
-
-      const { todo: updatedPost } = await response.json();
-
-      setPosts((prevPosts) =>
-        prevPosts.map((post) => (post.id === updatedPost.id ? updatedPost : post))
-      );
+      const { todo: updatedPost } = await toggleStarApi(id);
+      setPosts((prev) => prev.map((post) => (post.id === updatedPost.id ? updatedPost : post)));
     } catch (err) {
       console.error('Error updating post:', err);
     }
@@ -67,61 +44,44 @@ const BlogList: React.FC<{ category?: string | null }> = ({ category = null }) =
 
   const deletePost = async (id: string) => {
     try {
-      const response = await fetch('http://localhost:7000/todos', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete post');
-      }
-
-      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== id));
+      const success = await deletePostApi(id);
+      if (success) setPosts((prev) => prev.filter((post) => post.id !== id));
     } catch (err) {
       console.error('Error deleting post:', err);
     }
   };
 
-  if (loading) return <div className="text-center py-8">Loading posts...</div>;
+  if (loading) return <div className="text-center py-8 text-lg font-medium">Loading posts...</div>;
   if (error) return <div className="text-center py-8 text-red-500">Error: {error}</div>;
-  if (posts.length === 0) return <div className="text-center py-8">No posts found in this category.</div>;
+  if (posts.length === 0) return <div className="text-center py-8 text-gray-500">No posts found in this category.</div>;
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {posts.map((post) => (
-        <div key={post.id} className="border rounded-lg overflow-hidden shadow-md">
-          <div className="p-4">
-            <div className="flex justify-between items-start">
-              <h3 className="text-xl font-semibold mb-2">{post.todo}</h3>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => toggleStar(post.id)}
-                  className={`text-2xl ${post.isStar ? 'text-yellow-500' : 'text-gray-300'}`}
-                >
-                  ★
+        <div key={post.id} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden transition transform hover:scale-105 hover:shadow-xl">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white truncate">{post.todo}</h3>
+              <div className="flex space-x-3">
+                <button onClick={() => toggleStar(post.id)} className="text-xl transition-colors duration-300 hover:scale-110">
+                  <FiStar className={post.isStar ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-600'} />
                 </button>
-                <button
-                  onClick={() => deletePost(post.id)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  ×
+                <button onClick={() => deletePost(post.id)} className="text-red-500 hover:text-red-700 transition-colors duration-300 hover:scale-110">
+                  <FiTrash />
                 </button>
               </div>
             </div>
-            <p className="text-gray-600 mb-2">{post.content.substring(0, 100)}...</p>
-            <div className="flex justify-between items-center text-sm text-gray-500">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">{post.content.substring(0, 100)}...</p>
+            <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
               <span>By {post.authorName}</span>
               <span>{new Date(post.createAt).toLocaleDateString()}</span>
             </div>
-            <div className="mt-4">
-              <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2">
+            <div className="mt-4 flex items-center justify-between">
+              <span className="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full px-3 py-1 text-sm font-semibold">
                 {post.category}
               </span>
               <Link href={`/blog/${post.category.toLowerCase()}/${post.id}`} className="text-blue-500 hover:underline">
-                Read more
+                Read more →
               </Link>
             </div>
           </div>
