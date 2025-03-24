@@ -131,11 +131,11 @@ export default function CategoryPage() {
               <div className="p-4">
                 <div className="flex justify-between items-start">
                   <h3 className="text-xl font-semibold mb-2">{post.todo}</h3>
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-3">
                     <button
                       onClick={() => handleToggleStar(post.id)}
                       className={`text-2xl ${
-                        post.isStar ? "text-yellow-500" : "text-gray-300"
+                        post.isStar ? "text-yellow-500" : "text-gray-400"
                       }`}
                     >
                       ★
