@@ -98,7 +98,7 @@ export default function CategoryPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-6xl py-12 px-4">
+    <div className="container mx-auto max-w-6xl py-10 px-4">
       <h1 className="text-3xl font-bold mb-8 text-center">
         {getCategoryTitle()}
       </h1>
@@ -116,7 +116,7 @@ export default function CategoryPage() {
           </p>
           <Link
             href="/"
-            className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700"
+            className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-600"
           >
             Go to Homepage
           </Link>
