@@ -72,12 +72,12 @@ const BlogList: React.FC<{ category?: string | null }> = ({ category = null }) =
               </div>
             </div>
             <p className="text-gray-600 dark:text-gray-400 mb-4">{post.content.substring(0, 100)}...</p>
-            <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
               <span>By {post.authorName}</span>
               <span>{new Date(post.createAt).toLocaleDateString()}</span>
             </div>
             <div className="mt-4 flex items-center justify-between">
-              <span className="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full px-3 py-1 text-sm font-semibold">
+              <span className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full px-3 py-1 text-sm font-semibold">
                 {post.category}
               </span>
               <Link href={`/blog/${post.category.toLowerCase()}/${post.id}`} className="text-blue-500 hover:underline">
